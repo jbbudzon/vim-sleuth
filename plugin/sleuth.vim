@@ -16,7 +16,9 @@ function! s:guess(lines) abort
   let triplequote = 0
   let backtick = 0
   let xmlcomment = 0
-  let softtab = repeat(' ', 8)
+
+  setlocal tabstop<
+  let softtab = repeat(' ', &tabstop)
 
   for line in a:lines
     if !len(line) || line =~# '^\s*$'
@@ -82,19 +84,25 @@ function! s:guess(lines) abort
     let indent = len(matchstr(substitute(line, '\t', softtab, 'g'), '^ *'))
     if indent > 1 && (indent < 4 || indent % 2 == 0) &&
           \ get(options, 'shiftwidth', 99) > indent
+      " echom "sleuth: found indeth(".indent.") on line: ".line
       let options.shiftwidth = indent
     endif
   endfor
 
-  if heuristics.hard && !heuristics.spaces
+  " echom "sleuth: hard(".heuristics.hard.") soft(".heuristics.soft.") spaces(".heuristics.spaces.")"
+  if heuristics.hard > 2 * heuristics.spaces
+    " echom "sleuth: forcing hard tabs for indents"
+    " echom "sleuth: shiftwidth(".&tabstop.") tabstop(".&tabstop.") expandtab(0)"
     return {'expandtab': 0, 'shiftwidth': &tabstop}
   elseif heuristics.soft != heuristics.hard
     let options.expandtab = heuristics.soft > heuristics.hard
     if heuristics.hard
+      " echom "sleuth: forcing soft tabs for indents"
       let options.tabstop = 8
     endif
   endif
 
+  " echom "sleuth: shiftwidth(".options.shiftwidth.") expandtab(".options.expandtab.")"
   return options
 endfunction
 
