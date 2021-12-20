@@ -39,7 +39,9 @@ function! s:Guess(source, detected, lines) abort
   let has_heredocs = a:detected.filetype =~# '^\%(perl\|php\|ruby\|[cz]\=sh\|bash\)$'
   let options = {}
   let heuristics = {'spaces': 0, 'hard': 0, 'soft': 0, 'checked': 0, 'indents': {}}
-  let tabstop = get(a:detected.options, 'tabstop', get(a:detected.defaults, 'tabstop', [8]))[0]
+  setlocal tabstop<
+  let tabstop = get(a:detected.options, 'tabstop', [&tabstop])[0]
+  " let tabstop = get(a:detected.options, 'tabstop', get(a:detected.defaults, 'tabstop', [8]))[0]
   let softtab = repeat(' ', tabstop)
   let waiting_on = ''
   let prev_indent = -1
@@ -123,6 +125,7 @@ function! s:Guess(source, detected, lines) abort
     endif
   endfor
 
+  " echom "sleuth: hard(".heuristics.hard.") soft(".heuristics.soft.") spaces(".heuristics.spaces.")"
   if heuristics.hard && !heuristics.spaces &&
         \ !has_key(a:detected.options, 'tabstop')
     let options = {'expandtab': 0, 'shiftwidth': 0}
